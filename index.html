@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Foto Akun</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f9f9f9;
+    }
+    form {
+      padding: 20px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    label {
+      font-weight: bold;
+      margin-top: 10px;
+      display: block;
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      background: #007bff;
+      color: #fff;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h2>Upload Foto Akun</h2>
+  <form id="uploadForm">
+    <label for="photo">Pilih Foto:</label>
+    <input type="file" id="photo" accept="image/*" required>
+    
+    <label for="akun">Akun:</label>
+    <input type="text" id="akun" placeholder="Masukkan nama akun" required>
+    
+    <label for="harga">Harga:</label>
+    <input type="text" id="harga" placeholder="Masukkan harga akun" required>
+    
+    <label for="spek">Spek:</label>
+    <textarea id="spek" placeholder="Masukkan spesifikasi akun" required></textarea>
+    
+    <label for="log">Log:</label>
+    <textarea id="log" placeholder="Masukkan log akun" required></textarea>
+    
+    <label for="pemilik">Nama Pemilik:</label>
+    <input type="text" id="pemilik" placeholder="Masukkan nama pemilik" required>
+    
+    <button type="submit">Upload</button>
+  </form>
+
+  <p id="status"></p>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const status = document.getElementById('status');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      
+      // Ambil data dari form
+      const photo = document.getElementById('photo').files[0];
+      const akun = document.getElementById('akun').value;
+      const harga = document.getElementById('harga').value;
+      const spek = document.getElementById('spek').value;
+      const log = document.getElementById('log').value;
+      const pemilik = document.getElementById('pemilik').value;
+
+      // Validasi file foto
+      if (!photo) {
+        alert('Harap pilih foto!');
+        return;
+      }
+
+      // Convert foto ke Base64
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64Image = reader.result.split(',')[1];
+
+        // Data untuk file yang akan diunggah
+        const content = `
+### Akun: ${akun}
+- **Harga**: ${harga}
+- **Spek**: ${spek}
+- **Log**: ${log}
+- **Nama Pemilik**: ${pemilik}
+
+![Foto Akun](data:image/jpeg;base64,${base64Image})
+        `;
+
+        // Format permintaan ke API GitHub
+        const data = {
+          message: `Upload akun: ${akun}`,
+          content: btoa(content),
+          branch: 'main'
+        };
+
+        try {
+          const response = await fetch('https://api.github.com/repos/sathya01lllll/JP/contents/folder-path/' + encodeURIComponent(akun) + '.md', {
+            method: 'PUT',
+            headers: {
+              Authorization: 'Bearer YOUR_GITHUB_TOKEN',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+
+          if (response.ok) {
+            status.textContent = 'Upload berhasil!';
+            form.reset();
+          } else {
+            status.textContent = 'Upload gagal!';
+          }
+        } catch (error) {
+          console.error(error);
+          status.textContent = 'Terjadi kesalahan!';
+        }
+      };
+
+      reader.readAsDataURL(photo);
+    });
+  </script>
+</body>
+</html>
